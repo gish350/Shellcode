@@ -41,8 +41,26 @@ unsigned long AddressTableStorage()
 	return (tableAddress);
 }
 
+unsigned long getKernel32Base()
+{
+	unsigned long address;
+	_asm
+	{
+		xor ebx, ebx;				
+		mov ebx, fs:[0x30];			// go to PEB through TEB
+		mov ebx, [ebx + 0x0c];		// address of PEB's _PEB_LDR_DATA substructure
+		mov ebx, [ebx + 0x14];		//The _PEB_LDR_DATA structure contains a field named InMemoryOrderModuleList that represents a structure of type LIST_ENTRY
+		mov ebx, [ebx];
+		mov ebx, [ebx];
+		mov ebx, [ebx + 0x10]; // The third element of _LDR_DATA_TABLE_ENTRY linked list corresponds to the kernel32.dll library
+		mov address, ebx;
+	}
+	return address;
+}
+
 void main()
 {
+	getKernel32Base();
 	ADDRESS_TABLE* at;
 	at = (ADDRESS_TABLE*)AddressTableStorage();
 }
