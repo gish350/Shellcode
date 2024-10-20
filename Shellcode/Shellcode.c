@@ -1,13 +1,29 @@
 #include <stdio.h>
+#include <windows.h>
 
+#define SZ_FORMAT_STR	4
+#define SZ_LIB_NAME		16
 
+#pragma pack(1)
+typedef struct _USER_MODE_ADDRESS_RESOLUTION
+{
+	unsigned char LoadLibrary[SZ_LIB_NAME];
+	unsigned char GetProcAddress[SZ_LIB_NAME];
+}USER_MODE_ADDRESS_RESOLUTION;
+#pragma pack()
 
 // struct for use relative addresses
 #pragma pack(1)
 typedef struct _ADDRESS_TABLE
 {
+	//address resolution
+	USER_MODE_ADDRESS_RESOLUTION routines;
+
+	//application specific
+	unsigned char MSVCR90dll[SZ_LIB_NAME];
+	unsigned char printName[SZ_LIB_NAME];
 	int* printf;
-	unsigned char formatStr[4];
+	unsigned char formatStr[SZ_FORMAT_STR];
 	unsigned long globalInteger;
 }ADDRESS_TABLE;
 #pragma pack()
@@ -29,6 +45,24 @@ unsigned long AddressTableStorage()
 		STR_DEF_04( 't', 'f', '\0', '\0')
 		STR_DEF_04( '\0', '\0', '\0', '\0')
 		STR_DEF_04( '\0', '\0', '\0', '\0')
+
+
+		STR_DEF_04('p', 'r', 'i', 'n')
+		STR_DEF_04('t', 'f', '\0', '\0')
+		STR_DEF_04('\0', '\0', '\0', '\0')
+		STR_DEF_04('\0', '\0', '\0', '\0')
+
+
+		STR_DEF_04('p', 'r', 'i', 'n')
+		STR_DEF_04('t', 'f', '\0', '\0')
+		STR_DEF_04('\0', '\0', '\0', '\0')
+		STR_DEF_04('\0', '\0', '\0', '\0')
+
+
+		STR_DEF_04('p', 'r', 'i', 'n')
+		STR_DEF_04('t', 'f', '\0', '\0')
+		STR_DEF_04('\0', '\0', '\0', '\0')
+		STR_DEF_04('\0', '\0', '\0', '\0')
 
 		VAR_DWORD
 		STR_DEF_04('%', 'X', '\n', '\0')
@@ -56,6 +90,18 @@ unsigned long getKernel32Base()
 		mov address, ebx;
 	}
 	return address;
+}
+
+unsigned long getProcAddress(unsigned long dllBase)
+{
+	dataDirectory = (optionalHeader).DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+	int descriptorStartRVA = dataDirectory.VirtualAddress;
+	exportDirectory = (PIMAGE_EXPORT_DIRECTORY)(descriptorStartRVA + (DWORD)baseAddress);
+
+	dllName = (char*)((*exportDirectory).Name + (DWORD)baseAddress);
+	routineNames = (DWORD*)((*exportDirectory).AddressOfNames + (DWORD)baseAddress);
+	rvas = (DWORD*)((*expoerDirecory).AddressOfFunctions + (DWORD)baseAddress);
+	ordinals = (WORD*)((*exportDirecory).AddressOfNameOrdinals + (DWORD)baseAddress);
 }
 
 void main()
